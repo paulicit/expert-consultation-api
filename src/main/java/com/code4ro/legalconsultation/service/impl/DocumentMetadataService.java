@@ -33,8 +33,8 @@ public class DocumentMetadataService {
         return documentMetadataRepository.findAll(pageable);
     }
 
-    public Optional<DocumentMetadata> fetchOne(final String id) {
-        return documentMetadataRepository.findById(UUID.fromString(id));
+    public Optional<DocumentMetadata> fetchOne(final UUID id) {
+        return documentMetadataRepository.findById(id);
     }
 
     public DocumentMetadata build(final DocumentViewDto document){

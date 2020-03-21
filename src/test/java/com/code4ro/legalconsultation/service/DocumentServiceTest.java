@@ -1,7 +1,7 @@
 package com.code4ro.legalconsultation.service;
 
 import com.code4ro.legalconsultation.model.dto.DocumentConsolidatedDto;
-import com.code4ro.legalconsultation.model.persistence.DocumentConsolidated;
+import com.code4ro.legalconsultation.model.persistence.DocumentMetadata;
 import com.code4ro.legalconsultation.service.impl.DocumentConsolidatedService;
 import com.code4ro.legalconsultation.service.impl.DocumentMetadataService;
 import com.code4ro.legalconsultation.service.impl.DocumentServiceImpl;
@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -33,11 +34,11 @@ public class DocumentServiceTest {
     @Test
     public void getDocument(){
         final UUID uuid = UUID.randomUUID();
-        when(documentConsolidatedService.getEntity(any(UUID.class))).thenReturn((new DocumentConsolidated()));
+        when(documentMetadataService.fetchOne(any(UUID.class))).thenReturn(Optional.of(new DocumentMetadata()));
 
         documentService.fetchOne(uuid);
 
-        verify(documentConsolidatedService).getEntity(uuid);
+        verify(documentMetadataService).fetchOne(uuid);
     }
 
     @Test

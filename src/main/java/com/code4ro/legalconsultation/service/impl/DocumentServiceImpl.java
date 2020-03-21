@@ -54,7 +54,7 @@ public class DocumentServiceImpl implements DocumentService {
     @Transactional(readOnly = true)
     @Override
     public DocumentMetadata fetchOne(final UUID id) {
-        return documentConsolidatedService.getEntity(id).getDocumentMetadata();
+        return documentMetadataService.fetchOne(id).orElseThrow(EntityNotFoundException::new);
     }
 
     @Transactional(readOnly = true)
