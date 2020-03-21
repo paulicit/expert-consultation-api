@@ -235,7 +235,7 @@ public class DocumentControllerIntegrationTest extends AbstractControllerIntegra
     public void getDocument() throws Exception {
         DocumentConsolidated consolidated = saveSingleConsolidated();
 
-        mvc.perform(get(endpoint("/api/documents/", consolidated.getId()))
+        mvc.perform(get(endpoint("/api/documents/", consolidated.getDocumentMetadata().getId()))
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(consolidated.getDocumentMetadata().getId().toString()))
                 .andExpect(status().isOk());
