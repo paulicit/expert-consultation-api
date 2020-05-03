@@ -9,6 +9,10 @@ spring:
     generate-ddl: true
     properties.hibernate.dialect.storage_engine: innodb
     properties.hibernate.dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+  flyway:
+    enabled: false
+    locations: classpath:db/migrate
+    baselineOnMigrate: true
   multipart:
     maxFileSize: 20MB
     maxRequestSize: 30MB

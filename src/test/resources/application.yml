@@ -9,6 +9,8 @@ spring:
   jpa:
     hibernate.ddl-auto: update
     generate-ddl: true
+  flyway:
+    enabled: false
   data:
     web:
       pageable:
