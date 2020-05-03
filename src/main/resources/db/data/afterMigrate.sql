@@ -5,7 +5,9 @@ INSERT IGNORE INTO `users` VALUES ('123e4567-e89b-12d3-a456-556642440000','North
 INSERT IGNORE INTO `users` VALUES ('5ae63be1-4580-4774-8fd3-8f995fa3c750','South','dana@rogmail.com','Dana','Popa','Second Org','123456789','CONTRIBUTOR');
 
 INSERT IGNORE INTO `applicationusers` VALUES ('Paul','$2a$10$HUJneeEs06X6VjaK6n0hQOXWnULCoDrOiK4TeXfQZ2I62P49dQ96G','admin','123e4567-e89b-12d3-a456-556642440000');
+ -- password is "admin"
 INSERT IGNORE INTO `applicationusers` VALUES ('Dana','$2a$10$x7RTP/d7hicVGwMlbAe4Zehuzyp2UF0h9SSf1hZHYO3Hglqb3n4HC','contrib','5ae63be1-4580-4774-8fd3-8f995fa3c750');
+-- password is "contributor"
 
 INSERT IGNORE INTO `document_configuration` VALUES ('fdccc532-5c94-4bc8-a5b5-375150713ee5',1,1);
 
