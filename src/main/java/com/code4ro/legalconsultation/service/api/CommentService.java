@@ -2,6 +2,7 @@ package com.code4ro.legalconsultation.service.api;
 
 import com.code4ro.legalconsultation.model.dto.CommentDto;
 import com.code4ro.legalconsultation.model.dto.CommentIdentificationDto;
+import com.code4ro.legalconsultation.model.persistence.Comment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -17,9 +18,9 @@ public interface CommentService {
 
     void delete(UUID id);
 
-    Page<CommentIdentificationDto> findAll(UUID nodeId, Pageable pageable);
+    Page<Comment> findAll(UUID nodeId, Pageable pageable);
 
-    Page<CommentIdentificationDto> findAllReplies(UUID parentId, Pageable pageable);
+    Page<Comment> findAllReplies(UUID parentId, Pageable pageable);
 
     BigInteger count(UUID nodeId);
 }

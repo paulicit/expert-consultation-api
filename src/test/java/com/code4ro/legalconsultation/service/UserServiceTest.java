@@ -1,20 +1,23 @@
 package com.code4ro.legalconsultation.service;
 
 import com.code4ro.legalconsultation.common.exceptions.LegalValidationException;
+import com.code4ro.legalconsultation.converters.UserMapper;
+import com.code4ro.legalconsultation.converters.UserMapperImpl;
 import com.code4ro.legalconsultation.model.dto.UserDto;
 import com.code4ro.legalconsultation.model.persistence.User;
 import com.code4ro.legalconsultation.model.persistence.UserRole;
 import com.code4ro.legalconsultation.repository.UserRepository;
-import com.code4ro.legalconsultation.service.api.MapperService;
 import com.code4ro.legalconsultation.service.impl.MailService;
-import com.code4ro.legalconsultation.service.impl.MapperServiceImpl;
 import com.code4ro.legalconsultation.service.impl.UserService;
 import com.code4ro.legalconsultation.util.RandomObjectFiller;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -34,7 +37,7 @@ public class UserServiceTest {
     @Mock
     private MailService mailService;
 
-    private MapperService mapperService = new MapperServiceImpl();
+    private UserMapper mapperService = new UserMapperImpl();
     private UserService userService;
     private static final String USER_AS_STRING = "john,doe,john@email.com,42345,district,org";
 
@@ -82,11 +85,15 @@ public class UserServiceTest {
 
     @Test
     public void findAll() {
+        //given
         final Pageable pageable = mock(Pageable.class);
+        Mockito.when(userRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(new User())));
 
-        userService.findAll(pageable);
+        //when
+        Page<User> all = userService.findAll(pageable);
 
-        verify(userRepository).findAll(pageable);
+        //then
+        assertThat(all.getContent().size()).isEqualTo(1);
     }
 
     @Test

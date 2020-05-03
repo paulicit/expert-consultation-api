@@ -1,21 +1,21 @@
 package com.code4ro.legalconsultation.service.impl;
 
 import com.code4ro.legalconsultation.common.exceptions.LegalValidationException;
+import com.code4ro.legalconsultation.converters.UserMapper;
 import com.code4ro.legalconsultation.model.dto.UserDto;
 import com.code4ro.legalconsultation.model.persistence.User;
 import com.code4ro.legalconsultation.model.persistence.UserRole;
 import com.code4ro.legalconsultation.repository.UserRepository;
 import com.code4ro.legalconsultation.service.api.MailApi;
-import com.code4ro.legalconsultation.service.api.MapperService;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -36,12 +36,12 @@ public class UserService {
     private final UserRepository userRepository;
     private final CsvMapper csvMapper = new CsvMapper();
     private final MailApi mailApi;
-    private final MapperService mapperService;
+    private final UserMapper mapperService;
 
     @Autowired
     public UserService(final UserRepository userRepository,
                        final MailApi mailApi,
-                       final MapperService mapperService) {
+                       final UserMapper mapperService) {
         this.userRepository = userRepository;
         this.mailApi = mailApi;
         this.mapperService = mapperService;
@@ -52,16 +52,16 @@ public class UserService {
     }
 
     public UserDto saveAndSendRegistrationMail(final UserDto userDto) throws LegalValidationException {
-        final User user = mapperService.map(userDto, User.class);
+        final User user = mapperService.map(userDto);
         final User savedUser = userRepository.save(user);
         if (user.isNew()) {
             mailApi.sendRegisterMail(Collections.singletonList(user));
         }
-        return mapperService.map(savedUser, UserDto.class);
+        return mapperService.map(savedUser);
     }
 
     public List<UserDto> saveAndSendRegistrationMail(final List<UserDto> userDtos) throws LegalValidationException {
-        final List<User> users = mapperService.mapList(userDtos, User.class);
+        final List<User> users = userDtos.stream().map(mapperService::map).collect(Collectors.toList());
         final List<User> newUsers = users.stream()
                 .filter(User::isNew)
                 .collect(Collectors.toList());
@@ -70,17 +70,16 @@ public class UserService {
             mailApi.sendRegisterMail(newUsers);
         }
 
-        return mapperService.mapList(savedUsers, UserDto.class);
+        return savedUsers.stream().map(mapperService::map).collect(Collectors.toList());
     }
 
     public UserDto getOne(final String id) {
         final User user = userRepository.findById(UUID.fromString(id)).orElseThrow(EntityNotFoundException::new);
-        return mapperService.map(user, UserDto.class);
+        return mapperService.map(user);
     }
 
-    public Page<UserDto> findAll(final Pageable pageable) {
-        final Page<User> userPage = userRepository.findAll(pageable);
-        return mapperService.mapPage(userPage, UserDto.class);
+    public Page<User> findAll(final Pageable pageable) {
+        return userRepository.findAll(pageable);
     }
 
     public Optional<User> findByEmail(final String email) {
@@ -90,7 +89,6 @@ public class UserService {
     public void deleteById(final String id) {
         userRepository.deleteById(UUID.fromString(id));
     }
-
 
 
     private List<UserDto> read(InputStream stream) throws IOException {
@@ -118,6 +116,10 @@ public class UserService {
     public List<UserDto> extractFromCopyPaste(final List<String> usersList) {
         final String concatenatedUsers = StringUtils.join(usersList, "\n");
         return extractUsers(new ByteArrayInputStream(concatenatedUsers.getBytes()));
+    }
+
+    public List<User> findByIds(final Collection<UUID> ids) {
+        return userRepository.findAllById(ids);
     }
 
     private List<UserDto> extractUsers(final InputStream usersInputStream) {

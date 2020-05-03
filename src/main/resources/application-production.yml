@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:mysql://${MYSQL_DB_URL}:3306/legalconsultation?serverTimezone=Europe/Bucharest
+    url: jdbc:mysql://${MYSQL_DB_URL}:3306/legalconsultation?serverTimezone=Europe/Bucharest&characterEncoding=UTF-8
     username: ${MYSQL_DB_USERNAME}
     password: ${MYSQL_DB_PASSWORD}
   jpa:

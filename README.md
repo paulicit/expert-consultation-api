@@ -4,7 +4,7 @@
 
 API for Expert Consultation, a project designed to ease the process of public consultation with experts in Romania.
 
-[See the project live](https://www.figma.com/proto/7VLlmWKJOjS3YXkOFjMRi0/Legal-Consultation?node-id=0%3A1&scaling=min-zoom)
+[See the project UX](https://www.figma.com/proto/7VLlmWKJOjS3YXkOFjMRi0/Legal-Consultation?node-id=0%3A1&scaling=min-zoom) and [the preview environment](https://expert-consultation-client.now.sh/home) with the work in progress.
 
 Whenever a group or institution proposes a new law, there is a time when they need to consult with expert communities. For example, legislation on urban planning, construction, or architecture generally reaches the Architects' Order in Romania for consultation. The consultation period is very short and most of the time, not all members of these expert groups have the necessary time and tools to make their contribution effective. The consultation process within the group is very ad-hoc, made through physical documents, social media, or excel files forwarded back and forth between all participants, and these groups sometimes have more than 4-5 thousand experts who should get information and come back in a few days.
 
@@ -16,15 +16,19 @@ A big problem is also the legislative hat and the fact that when feedback is nee
 
 The tool also contributes to the transparency of the consultation process, which will now be open to everyone, where everyone can see the comments of others and the end product.
 
-To find out more about this project, [check it out on Civic Labs](https://civiclabs.ro/ro/solutions/expert-consultation), the Code for Romanian research and prototyping program.
+To find out more about this project, [check it out on Civic Labs](https://civiclabs.ro/ro/solutions/expert-consultation), the Code for Romania research and prototyping program.
 
 [Contributing](#contributing) | [Built with](#built-with) | [Repos and projects](#repos-and-projects) | [Deployment](#deployment) | [Feedback](#feedback) | [License](#license) | [About Code4Ro](#about-code4ro)
 
 ## Contributing
 
-This project is built by amazing volunteers and you can be one of them! Here's a list of ways in [which you can contribute to this project](.github/CONTRIBUTING.MD).
+This project is built by amazing volunteers and you can be one of them! Here's a list of ways in [which you can contribute to this project](.github/CONTRIBUTING.md). If you want to make any change to this repository, please **make a fork first**.
 
-You can also list any pending features and planned improvements for the project here.
+Help us out by testing this project in the [staging environment](https://expert-consultation-client.now.sh/home). If you see something that doesn't quite work the way you expect it to, open an Issue. Make sure to describe what you _expect to happen_ and _what is actually happening_ in detail.
+
+If you would like to suggest new functionality, open an Issue and mark it as a __[Feature request]__. Please be specific about why you think this functionality will be of use. If you can, please include some visual description of what you would like the UI to look like, if you are suggesting new UI elements. 
+
+Also, this is [the workflow we follow](.github/WORKFLOW.md). 
 
 ## Built With
 
