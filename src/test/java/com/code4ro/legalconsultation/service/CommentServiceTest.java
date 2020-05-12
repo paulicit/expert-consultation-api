@@ -2,6 +2,7 @@ package com.code4ro.legalconsultation.service;
 
 import com.code4ro.legalconsultation.common.exceptions.LegalValidationException;
 import com.code4ro.legalconsultation.config.security.CurrentUserService;
+import com.code4ro.legalconsultation.converters.CommentMapper;
 import com.code4ro.legalconsultation.model.dto.CommentDto;
 import com.code4ro.legalconsultation.model.persistence.ApplicationUser;
 import com.code4ro.legalconsultation.model.persistence.Comment;
@@ -9,7 +10,6 @@ import com.code4ro.legalconsultation.model.persistence.DocumentNode;
 import com.code4ro.legalconsultation.model.persistence.UserRole;
 import com.code4ro.legalconsultation.repository.CommentRepository;
 import com.code4ro.legalconsultation.service.api.DocumentNodeService;
-import com.code4ro.legalconsultation.service.api.MapperService;
 import com.code4ro.legalconsultation.service.impl.CommentServiceImpl;
 import com.code4ro.legalconsultation.util.CommentFactory;
 import com.code4ro.legalconsultation.util.DocumentNodeFactory;
@@ -22,12 +22,16 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -37,7 +41,7 @@ public class CommentServiceTest {
     @Mock
     private CommentRepository commentRepository;
     @Mock
-    private MapperService mapperService;
+    private CommentMapper mapperService;
     @Mock
     private CurrentUserService currentUserService;
     @Mock
@@ -65,9 +69,9 @@ public class CommentServiceTest {
         final CommentDto commentDto = RandomObjectFiller.createAndFill(CommentDto.class);
         final DocumentNode documentNode = documentNodeFactory.create();
         final Comment comment = new Comment();
-        when(mapperService.map(commentDto, Comment.class)).thenReturn(comment);
+        when(mapperService.map(commentDto)).thenReturn(comment);
         when(currentUserService.getCurrentUser()).thenReturn(currentUser);
-        when(documentNodeService.getEntity(any())).thenReturn(documentNode);
+        when(documentNodeService.findById(any())).thenReturn(documentNode);
 
         commentService.create(id, commentDto);
 
@@ -123,22 +127,40 @@ public class CommentServiceTest {
 
     @Test
     public void findAll() {
+        //given
         final UUID nodeId = UUID.randomUUID();
-        final Pageable pageable = mock(Pageable.class);
+        Pageable pageable = mock(Pageable.class);
+        String text = "mockText";
+        Comment comment1 = new Comment();
+        comment1.setText(text);
 
-        commentService.findAll(nodeId, pageable);
+        when(commentRepository.findByDocumentNodeId(nodeId, pageable)).thenReturn(new PageImpl<>(List.of(comment1)));
 
-        verify(commentRepository).findByDocumentNodeId(nodeId, pageable);
+        //when
+        Page<Comment> all = commentService.findAll(nodeId, pageable);
+
+        //then
+        assertEquals("response size should be 1", all.getContent().size(), 1L);
+        assertEquals("text is different", all.getContent().get(0).getText(), text);
     }
 
     @Test
     public void findAllReplies() {
+        //given
         UUID parentId = UUID.randomUUID();
         Pageable pageable = mock(Pageable.class);
+        String text = "mockText";
+        Comment comment1 = new Comment();
+        comment1.setText(text);
 
-        commentService.findAllReplies(parentId, pageable);
+        when(commentRepository.findByParentId(parentId, pageable)).thenReturn(new PageImpl<>(List.of(comment1)));
 
-        verify(commentRepository).findByParentId(parentId, pageable);
+        //when
+        Page<Comment> all = commentService.findAllReplies(parentId, pageable);
+
+        //then
+        assertEquals("response size should be 1", all.getContent().size(), 1L);
+        assertEquals("text is different", all.getContent().get(0).getText(), text);
     }
 
     @Test
@@ -149,7 +171,7 @@ public class CommentServiceTest {
         Comment reply = new Comment();
 
         when(commentRepository.findById(parentId)).thenReturn(Optional.of(parent));
-        when(mapperService.map(commentDto, Comment.class)).thenReturn(reply);
+        when(mapperService.map(commentDto)).thenReturn(reply);
         when(currentUserService.getCurrentUser()).thenReturn(currentUser);
 
         commentService.createReply(parentId, commentDto);

@@ -1,6 +1,9 @@
 package com.code4ro.legalconsultation.controller;
 
+import com.code4ro.legalconsultation.converters.UserMapper;
+import com.code4ro.legalconsultation.model.dto.PageDto;
 import com.code4ro.legalconsultation.model.dto.UserDto;
+import com.code4ro.legalconsultation.model.persistence.User;
 import com.code4ro.legalconsultation.service.impl.UserService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -20,6 +23,7 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final UserMapper userMapper;
 
     @ApiOperation(value = "Save a new user in the platform",
             response = UserDto.class,
@@ -55,8 +59,10 @@ public class UserController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @GetMapping
-    public Page<UserDto> findAll(@ApiParam("Page object information being requested") final Pageable pageable) {
-        return userService.findAll(pageable);
+    public PageDto<UserDto> findAll(@ApiParam("Page object information being requested") final Pageable pageable) {
+        final Page<User> userPage = userService.findAll(pageable);
+        Page<UserDto> usersDto = userPage.map(userMapper::map);
+        return new PageDto<>(usersDto);
     }
 
     @ApiOperation(value = "Delete a user from the platform based on id",
@@ -83,7 +89,7 @@ public class UserController {
     @PostMapping(value = "/extract-from-copy")
     public List<UserDto> extractFromCopyPaste(
             @ApiParam("List of Strings with all the user details separated by comma")
-            @RequestBody final List<String>  usersList){
+            @RequestBody final List<String> usersList) {
         return userService.extractFromCopyPaste(usersList);
     }
 }

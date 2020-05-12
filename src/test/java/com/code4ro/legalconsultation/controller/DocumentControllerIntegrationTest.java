@@ -7,11 +7,9 @@ import com.code4ro.legalconsultation.model.persistence.DocumentConfiguration;
 import com.code4ro.legalconsultation.model.persistence.DocumentConsolidated;
 import com.code4ro.legalconsultation.model.persistence.DocumentMetadata;
 import com.code4ro.legalconsultation.model.persistence.DocumentNode;
-import com.code4ro.legalconsultation.repository.DocumentConfigurationRepository;
 import com.code4ro.legalconsultation.repository.DocumentConsolidatedRepository;
 import com.code4ro.legalconsultation.repository.DocumentMetadataRepository;
 import com.code4ro.legalconsultation.repository.DocumentNodeRepository;
-import com.code4ro.legalconsultation.service.api.CommentService;
 import com.code4ro.legalconsultation.util.CommentFactory;
 import com.code4ro.legalconsultation.util.DocumentNodeFactory;
 import com.code4ro.legalconsultation.util.PdfFileFactory;
@@ -33,10 +31,9 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.endsWith;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class DocumentControllerIntegrationTest extends AbstractControllerIntegrationTest {
 
@@ -235,12 +232,12 @@ public class DocumentControllerIntegrationTest extends AbstractControllerIntegra
     public void getDocument() throws Exception {
         DocumentConsolidated consolidated = saveSingleConsolidated();
 
-        mvc.perform(get(endpoint("/api/documents/", consolidated.getId()))
+        mvc.perform(get(endpoint("/api/documents/", consolidated.getDocumentMetadata().getId()))
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(consolidated.getDocumentMetadata().getId().toString()))
                 .andExpect(status().isOk());
 
-        mvc.perform(get(endpoint("/api/documents/", consolidated.getId(), "/consolidated"))
+        mvc.perform(get(endpoint("/api/documents/", consolidated.getDocumentMetadata().getId(), "/consolidated"))
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(consolidated.getId().toString()))
                 .andExpect(status().isOk())
@@ -259,7 +256,7 @@ public class DocumentControllerIntegrationTest extends AbstractControllerIntegra
         commentFactory.save(consolidated.getDocumentNode().getId());
         commentFactory.save(consolidated.getDocumentNode().getId());
 
-        mvc.perform(get(endpoint("/api/documents/", consolidated.getId(), "/consolidated"))
+        mvc.perform(get(endpoint("/api/documents/", consolidated.getDocumentMetadata().getId(), "/consolidated"))
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.documentNode.numberOfComments").value("2"))
                 .andExpect(status().isOk())

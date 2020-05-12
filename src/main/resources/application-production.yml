@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:mysql://${MYSQL_DB_URL}:3306/legalconsultation?serverTimezone=Europe/Bucharest
+    url: jdbc:mysql://${MYSQL_DB_URL}:3306/legalconsultation?serverTimezone=Europe/Bucharest&characterEncoding=UTF-8
     username: ${MYSQL_DB_USERNAME}
     password: ${MYSQL_DB_PASSWORD}
   jpa:
@@ -9,6 +9,10 @@ spring:
     generate-ddl: true
     properties.hibernate.dialect.storage_engine: innodb
     properties.hibernate.dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+  flyway:
+    enabled: false
+    locations: classpath:db/migrate
+    baselineOnMigrate: true
   multipart:
     maxFileSize: 20MB
     maxRequestSize: 30MB
