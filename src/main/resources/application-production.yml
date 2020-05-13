@@ -20,19 +20,6 @@ spring:
         default-page-size: 20
   mvc:
     locale: ro
-  mail:
-    host: '127.0.0.1'
-    port: 1025
-    username: ""
-    password: ""
-    properties:
-      transport:
-        protocol: 'smtp'
-      mail:
-        smtp:
-          auth: false # set the access user/password and change this to true
-          starttls:
-            enable: true
   cache:
     cache-names: users
 app:

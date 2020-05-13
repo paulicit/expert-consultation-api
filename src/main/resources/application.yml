@@ -4,7 +4,7 @@ spring:
   datasource:
     url: jdbc:mysql://${MYSQL_DB_URL:localhost}:3306/legalconsultation?serverTimezone=Europe/Bucharest&characterEncoding=UTF-8
     username: root
-    password: root
+    password:
   jpa:
     show-sql: true
     hibernate.ddl-auto: update
@@ -22,19 +22,6 @@ spring:
         default-page-size: 20
   mvc:
     locale: ro
-  mail:
-    host: '127.0.0.1'
-    port: 1025
-    username: ""
-    password: ""
-    properties:
-      transport:
-        protocol: 'smtp'
-      mail:
-        smtp:
-          auth: false # set the access user/password and change this to true
-          starttls:
-            enable: true
   cache:
     cache-names: users
 app:

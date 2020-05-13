@@ -32,15 +32,15 @@ public class MailService implements MailApi {
     @Value("${spring.mvc.locale}")
     private String configuredLocale;
 
-    private final AmazonEmailService mailSender;
+    private final AmazonEmailService amazonEmailService;
     private final I18nService i18nService;
     private final Configuration freemarkerConfig;
 
     @Autowired
-    public MailService(final AmazonEmailService mailSender,
+    public MailService(final AmazonEmailService amazonEmailService,
                        final I18nService i18nService,
                        final Configuration freemarkerConfig) {
-        this.mailSender = mailSender;
+        this.amazonEmailService = amazonEmailService;
         this.i18nService = i18nService;
         this.freemarkerConfig = freemarkerConfig;
     }
@@ -53,7 +53,7 @@ public class MailService implements MailApi {
                 final Template template = freemarkerConfig.getTemplate(getRegisterTemplate());
                 final String content = FreeMarkerTemplateUtils.processTemplateIntoString(template, getRegisterModel(user));
                 final String subject = i18nService.translate("register.User.confirmation.subject");
-                mailSender.sendEmail(user.getEmail(), subject, content);
+                amazonEmailService.sendEmail(user.getEmail(), subject, content);
             } catch (final Exception e) {
                 LOG.error("Problem preparing or sending email to user with address {}", user.getEmail(), e);
                 failedEmails.add(user.getEmail());
