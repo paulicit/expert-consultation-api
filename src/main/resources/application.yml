@@ -45,7 +45,7 @@ app:
   jwtSecret: ORy9HWgKoZPAs50ECKw0
   jwtExpirationInMs: 1728000000   # two days expiration time, can be extended
   signupurl: 'http://localhost:4200/authentication/sign-up'
-
+  emailSender: noreply@legalconsulting.ro # here should be the verified email in SES https://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses-procedure.html
 storage:
   aws:
     region: us-east-1
