@@ -40,7 +40,9 @@ spring:
 app:
   jwtSecret: ORy9HWgKoZPAs50ECKw0
   jwtExpirationInMs: 1728000000   # two days expiration time, can be extended
-  signupurl: 'http://localhost:4200/authentication/sign-up'
+  email:
+    documenturl: http://localhost:4200/api/documents/
+    signupurl: http://localhost:4200/authentication/sign-up
 
 storage:
   aws:

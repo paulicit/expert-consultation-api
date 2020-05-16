@@ -6,10 +6,7 @@ import com.code4ro.legalconsultation.model.dto.DocumentMetadataDto;
 import com.code4ro.legalconsultation.model.dto.DocumentViewDto;
 import com.code4ro.legalconsultation.model.dto.UserDto;
 import com.code4ro.legalconsultation.model.persistence.*;
-import com.code4ro.legalconsultation.service.api.DocumentNodeService;
-import com.code4ro.legalconsultation.service.api.DocumentService;
-import com.code4ro.legalconsultation.service.api.PDFService;
-import com.code4ro.legalconsultation.service.api.StorageApi;
+import com.code4ro.legalconsultation.service.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +22,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class DocumentServiceImpl implements DocumentService {
+
     private static final Logger LOG = LoggerFactory.getLogger(DocumentServiceImpl.class);
 
     private final DocumentConsolidatedService documentConsolidatedService;
@@ -34,6 +32,7 @@ public class DocumentServiceImpl implements DocumentService {
     private final StorageApi storageApi;
     private final UserService userService;
     private final UserMapper mapperService;
+    private final MailApi mailService;
 
     @Autowired
     public DocumentServiceImpl(final DocumentConsolidatedService documentConsolidatedService,
@@ -42,7 +41,8 @@ public class DocumentServiceImpl implements DocumentService {
                                final DocumentNodeService documentNodeService,
                                final StorageApi storageApi,
                                final UserService userService,
-                               final UserMapper mapperService) {
+                               final UserMapper mapperService,
+                               final MailApi mailService) {
         this.documentConsolidatedService = documentConsolidatedService;
         this.documentMetadataService = documentMetadataService;
         this.pdfService = pdfService;
@@ -50,6 +50,7 @@ public class DocumentServiceImpl implements DocumentService {
         this.storageApi = storageApi;
         this.userService = userService;
         this.mapperService = mapperService;
+        this.mailService = mailService;
     }
 
     @Transactional(readOnly = true)
@@ -116,8 +117,9 @@ public class DocumentServiceImpl implements DocumentService {
         final List<User> users = userService.findByIds(userIds);
         final DocumentConsolidated documentConsolidated = documentConsolidatedService.getEntity(id);
         documentConsolidated.setAssignedUsers(users);
-
         documentConsolidatedService.saveOne(documentConsolidated);
+
+        mailService.sendDocumentAssignedEmail(documentConsolidated.getDocumentMetadata(), users);
     }
 
     @Override
