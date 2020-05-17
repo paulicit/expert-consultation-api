@@ -28,7 +28,7 @@ import java.util.stream.Stream;
 
 @Service
 @Profile("production")
-public class MailService implements MailApi{
+public class MailService implements MailApi {
     private static final Logger LOG = LoggerFactory.getLogger(MailService.class);
 
     @Value("${app.email.signupurl}")
@@ -57,8 +57,8 @@ public class MailService implements MailApi{
     public void sendRegisterMail(final List<User> users) throws LegalValidationException {
         final List<String> failedEmails = new ArrayList<>();
 
-        String translatedSubject = i18nService.translate("register.User.confirmation.subject");
-        String registerTemplate = getRegisterTemplate();
+        final String translatedSubject = i18nService.translate("register.User.confirmation.subject");
+        final String registerTemplate = getRegisterTemplate();
         users.forEach(user ->
             buildAndSendEmail(translatedSubject, registerTemplate, getRegisterModel(user), user.getEmail())
                     .ifPresent(failedEmails::add)
@@ -73,8 +73,8 @@ public class MailService implements MailApi{
     public void sendDocumentAssignedEmail(final DocumentMetadata documentMetadata, final List<User> users) {
         final List<String> failedEmails = new ArrayList<>();
 
-        String translatedSubject = i18nService.translate("email.documentAssigned.subject");
-        String documentAssignedTemplate = getDocumentAssignedTemplate();
+        final String translatedSubject = i18nService.translate("email.documentAssigned.subject");
+        final String documentAssignedTemplate = getDocumentAssignedTemplate();
         users.forEach(user ->
                 buildAndSendEmail(translatedSubject, documentAssignedTemplate, getDocumentAssignedModel(documentMetadata, user), user.getEmail())
                     .ifPresent(failedEmails::add)
@@ -85,7 +85,7 @@ public class MailService implements MailApi{
         }
     }
 
-    private Optional<String> buildAndSendEmail(String subject, String templateName, Map<String, String> model, String userEmail){
+    private Optional<String> buildAndSendEmail(String subject, String templateName, Map<String, String> model, String userEmail) {
         try {
             final MimeMessage message = mailSender.createMimeMessage();
             final MimeMessageHelper helper = new MimeMessageHelper(message);
@@ -101,21 +101,6 @@ public class MailService implements MailApi{
             LOG.error("Problem preparing or sending email to user with address {}", userEmail, e);
             return Optional.of(userEmail);
         }
-    }
-
-    private Map<String, String> getDocumentAssignedModel(final DocumentMetadata documentMetadata, final User user) {
-        return Map.of(
-                "username", getUserName(user),
-                "documenturl", getDocumentUrl(documentMetadata)
-        );
-    }
-
-    private String getDocumentUrl(DocumentMetadata documentMetadata) {
-        return documentUrl + "/" + documentMetadata.getId();
-    }
-
-    private String getDocumentAssignedTemplate() {
-        return "document-assigned-email-" + configuredLocale + ".ftl";
     }
 
     private String getRegisterTemplate() {
@@ -139,4 +124,20 @@ public class MailService implements MailApi{
                 .filter(StringUtils::isNotBlank)
                 .collect(Collectors.joining(USERNAME_SEPARATOR));
     }
+
+    private String getDocumentAssignedTemplate() {
+        return "document-assigned-email-" + configuredLocale + ".ftl";
+    }
+
+    private Map<String, String> getDocumentAssignedModel(final DocumentMetadata documentMetadata, final User user) {
+        return Map.of(
+                "username", getUserName(user),
+                "documenturl", getDocumentUrl(documentMetadata)
+        );
+    }
+
+    private String getDocumentUrl(DocumentMetadata documentMetadata) {
+        return documentUrl + "/" + documentMetadata.getId();
+    }
+
 }

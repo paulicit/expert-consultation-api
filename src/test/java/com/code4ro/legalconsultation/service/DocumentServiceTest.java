@@ -2,9 +2,9 @@ package com.code4ro.legalconsultation.service;
 
 import com.code4ro.legalconsultation.model.dto.DocumentConsolidatedDto;
 import com.code4ro.legalconsultation.model.dto.DocumentMetadataDto;
-import com.code4ro.legalconsultation.model.persistence.DocumentMetadata;
 import com.code4ro.legalconsultation.model.persistence.DocumentConsolidated;
 import com.code4ro.legalconsultation.model.persistence.User;
+import com.code4ro.legalconsultation.service.api.MailApi;
 import com.code4ro.legalconsultation.service.impl.DocumentConsolidatedService;
 import com.code4ro.legalconsultation.service.impl.DocumentMetadataService;
 import com.code4ro.legalconsultation.service.impl.DocumentServiceImpl;
@@ -22,12 +22,11 @@ import org.springframework.data.domain.Pageable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -40,6 +39,8 @@ public class DocumentServiceTest {
     private UserService userService;
     @Mock
     private DocumentMetadataService documentMetadataService;
+    @Mock
+    private MailApi mailService;
 
     @Captor
     private ArgumentCaptor<DocumentConsolidated> documentConsolidatedArgumentCaptor;
@@ -101,6 +102,7 @@ public class DocumentServiceTest {
 
         documentService.assignUsers(documentConsolidated.getId(), assignedUsersIds);
 
+        verify(mailService).sendDocumentAssignedEmail(eq(documentConsolidated.getDocumentMetadata()), eq(assignedUsers));
         verify(documentConsolidatedService).saveOne(documentConsolidatedArgumentCaptor.capture());
         final DocumentConsolidated capturedDocument = documentConsolidatedArgumentCaptor.getValue();
         assertThat(capturedDocument.getAssignedUsers()).hasSize(3);
