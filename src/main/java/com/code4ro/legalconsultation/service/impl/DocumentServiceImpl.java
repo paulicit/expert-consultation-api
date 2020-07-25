@@ -37,7 +37,6 @@ public class DocumentServiceImpl implements DocumentService {
     private final DocumentNodeService documentNodeService;
     private final StorageApi storageApi;
     private final UserService userService;
-    private final UserMapper mapperService;
     private final MailApi mailService;
     private final UserMapper userMapperService;
     private final DocumentConsolidatedMapper documentConsolidatedMapper;

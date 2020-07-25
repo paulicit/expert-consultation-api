@@ -1,6 +1,7 @@
 package com.code4ro.legalconsultation.config.mail;
 
 import com.code4ro.legalconsultation.model.persistence.DocumentMetadata;
+import com.code4ro.legalconsultation.model.persistence.Invitation;
 import com.code4ro.legalconsultation.model.persistence.User;
 import com.code4ro.legalconsultation.service.api.MailApi;
 import org.slf4j.Logger;
@@ -23,7 +24,7 @@ public class MailConfiguration {
     public MailApi mailApi() {
         return new MailApi() {
             @Override
-            public void sendRegisterMail(List<User> users) {
+            public void sendRegisterMail(List<Invitation> invitations) {
                 LOG.info("Email sending not supported in dev environment.");
             }
 

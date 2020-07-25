@@ -59,13 +59,19 @@ public class MailService implements MailApi {
 
         final String translatedSubject = i18nService.translate("register.User.confirmation.subject");
         final String registerTemplate = getRegisterTemplate();
-        users.forEach(user ->
-            buildAndSendEmail(translatedSubject, registerTemplate, getRegisterModel(user), user.getEmail())
-                    .ifPresent(failedEmails::add)
-        );
+        invitations.forEach(invitation ->
+            buildAndSendEmail(translatedSubject,
+                    registerTemplate,
+                    getRegisterModel(invitation),
+                    invitation.getUser().getEmail())
+                    .ifPresent(failedEmails::add));
 
         if (!failedEmails.isEmpty()) {
-            throw new LegalValidationException("user.Email.send.failed", failedEmails, HttpStatus.BAD_REQUEST);
+            throw LegalValidationException.builder()
+                    .i18nKey("user.Email.send.failed")
+                    .i8nArguments(failedEmails)
+                    .httpStatus(HttpStatus.BAD_REQUEST)
+                    .build();
         }
     }
 
@@ -102,7 +108,7 @@ public class MailService implements MailApi {
             mailSender.send(message);
             return Optional.empty();
         } catch (final Exception e) {
-            LOG.error("Problem preparing or sending email to user with address {}", userEmail, e);
+            log.error("Problem preparing or sending email to user with address {}", userEmail, e);
             return Optional.of(userEmail);
         }
     }
