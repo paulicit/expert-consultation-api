@@ -34,8 +34,6 @@ public class MailService implements MailApi {
     private String signupUrl;
     @Value("${app.email.documenturl}")
     private String documentUrl;
-    @Value("${app.signupurl}")
-    private String signupUrl;
     @Value("${spring.mvc.locale}")
     private String configuredLocale;
     @Value("${app.email.sender}")
