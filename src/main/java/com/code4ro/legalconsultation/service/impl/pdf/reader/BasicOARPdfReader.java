@@ -36,6 +36,8 @@ public class BasicOARPdfReader implements PDFReader {
     }
 
     public String getContent(PDDocument document) throws IOException {
+        boldAreasRepository.clear();
+        boldTextStripperByArea.getRegions().clear();
         final String result = getContentAsString(document, boldTextStripperByArea);
         boldAreasRepository.setBoldAreas(boldTextStripperByArea.getBoldAreas());
         return result;
@@ -67,7 +69,9 @@ public class BasicOARPdfReader implements PDFReader {
 
         stripper.addRegion(REGULAR_PAGE_REGION_NAME, regularPageRegion);
         stripper.extractRegions(page);
-        return getContentAsStringForRegion(stripper, REGULAR_PAGE_REGION_NAME);
+        final String result = getContentAsStringForRegion(stripper, REGULAR_PAGE_REGION_NAME);
+        stripper.removeRegion(REGULAR_PAGE_REGION_NAME);
+        return result;
     }
 
     private String getContentAsStringForRegion(final PDFBoldTextStripperByArea stripper, final String regionName) {

@@ -2,13 +2,13 @@ package com.code4ro.legalconsultation.service.impl;
 
 import com.code4ro.legalconsultation.common.exceptions.LegalValidationException;
 import com.code4ro.legalconsultation.model.persistence.DocumentMetadata;
+import com.code4ro.legalconsultation.model.persistence.Invitation;
 import com.code4ro.legalconsultation.model.persistence.User;
 import com.code4ro.legalconsultation.service.api.MailApi;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
@@ -28,21 +28,23 @@ import java.util.stream.Stream;
 
 @Service
 @Profile("production")
+@Slf4j
 public class MailService implements MailApi {
-    private static final Logger LOG = LoggerFactory.getLogger(MailService.class);
-
     @Value("${app.email.signupurl}")
     private String signupUrl;
-
     @Value("${app.email.documenturl}")
     private String documentUrl;
-
+    @Value("${app.signupurl}")
+    private String signupUrl;
     @Value("${spring.mvc.locale}")
     private String configuredLocale;
-
+    @Value("${app.email.sender}")
+    private String from;
+  
     private final JavaMailSender mailSender;
     private final I18nService i18nService;
     private final Configuration freemarkerConfig;
+
 
     @Autowired
     public MailService(final JavaMailSender mailSender,
@@ -54,7 +56,7 @@ public class MailService implements MailApi {
     }
 
     @Override
-    public void sendRegisterMail(final List<User> users) throws LegalValidationException {
+    public void sendRegisterMail(final List<Invitation> invitations) {
         final List<String> failedEmails = new ArrayList<>();
 
         final String translatedSubject = i18nService.translate("register.User.confirmation.subject");
@@ -81,7 +83,11 @@ public class MailService implements MailApi {
         );
 
         if (!failedEmails.isEmpty()) {
-            throw new LegalValidationException("user.Email.send.failed", failedEmails, HttpStatus.BAD_REQUEST);
+            throw LegalValidationException.builder()
+                    .i18nKey("user.Email.send.failed")
+                    .i8nArguments(failedEmails)
+                    .httpStatus(HttpStatus.BAD_REQUEST)
+                    .build();
         }
     }
 
@@ -107,15 +113,15 @@ public class MailService implements MailApi {
         return "register-email-" + configuredLocale + ".ftl";
     }
 
-    private Map<String, String> getRegisterModel(final User user) {
+    private Map<String, String> getRegisterModel(final Invitation invitation) {
         return Map.of(
-                "username", getUserName(user),
-                "signupurl", getSignupUrl(user)
+                "username", getUserName(invitation.getUser()),
+                "signupurl", getSignupUrl(invitation)
         );
     }
 
-    private String getSignupUrl(final User user) {
-        return signupUrl + '/' + user.getEmail();
+    private String getSignupUrl(final Invitation invitation) {
+        return signupUrl + '/' + invitation.getCode();
     }
 
     private String getUserName(final User user) {

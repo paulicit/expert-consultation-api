@@ -39,7 +39,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             "/v2/api-docs",
             "/configuration/**",
             "/swagger*/**",
-            "/webjars/**"
+            "/webjars/**",
+            "/actuator/**",
+            "/api/invitations/*"
     };
 
     private CustomUserDetailsService customUserDetailsService;
@@ -102,6 +104,5 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         // Add our custom JWT security filter to be executed before UsernamePassAuthFilter
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
-
     }
 }

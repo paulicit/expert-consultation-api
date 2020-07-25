@@ -1,0 +1,29 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="frag (node)">
+    <div th:switch="${node.documentNodeType.name()}">
+        <div th:case="'CHAPTER'">
+            <div th:include="fragments/regular-node-fragment ::frag (${node}, ${'Capitolul'})"></div>
+        </div>
+        <div th:case="'SECTION'">
+            <div th:include="fragments/regular-node-fragment ::frag (${node}, ${'Sectiunea'})"></div>
+        </div>
+        <div th:case="'ARTICLE'">
+            <div th:include="fragments/regular-node-fragment ::frag (${node}, ${'Articolul'})"></div>
+        </div>
+        <div th:case="'PARAGRAPH'">
+            <div th:include="fragments/inline-node-fragment ::frag (${node})"></div>
+        </div>
+        <div th:case="'ALIGNMENT'">
+            <div th:include="fragments/inline-node-fragment ::frag (${node})"></div>
+        </div>
+    </div>
+    <div th:unless="${#arrays.isEmpty(node.children)}">
+        <div th:each="child: ${node.children}">
+            <div th:include="fragments/node-fragment ::frag (${child})"></div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

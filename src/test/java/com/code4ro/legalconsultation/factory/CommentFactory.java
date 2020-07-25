@@ -1,5 +1,6 @@
-package com.code4ro.legalconsultation.util;
+package com.code4ro.legalconsultation.factory;
 
+import com.code4ro.legalconsultation.model.dto.CommentDetailDto;
 import com.code4ro.legalconsultation.model.dto.CommentDto;
 import com.code4ro.legalconsultation.model.persistence.ApplicationUser;
 import com.code4ro.legalconsultation.model.persistence.Comment;
@@ -19,10 +20,13 @@ public final class CommentFactory {
 
     public CommentDto create() {
         final CommentDto commentDto = RandomObjectFiller.createAndFill(CommentDto.class);
+        if (commentDto == null) throw new IllegalArgumentException("Failed to create the comment");
+        commentDto.setLastEditDateTime(new Date());
+        commentDto.setStatus(null);
         return commentDto;
     }
 
-    public CommentDto save(final UUID nodeId) {
+    public CommentDetailDto save(final UUID nodeId) {
         return commentService.create(nodeId, create());
     }
 
@@ -30,6 +34,7 @@ public final class CommentFactory {
         final Comment comment = new Comment();
         comment.setOwner(RandomObjectFiller.createAndFillWithBaseEntity(ApplicationUser.class));
         comment.setText(RandomStringUtils.randomAlphanumeric(10));
+        comment.setId(UUID.randomUUID());
         return comment;
     }
 }

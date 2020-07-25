@@ -1,15 +1,21 @@
 package com.code4ro.legalconsultation.service;
 
+import com.code4ro.legalconsultation.converters.DocumentConsolidatedMapper;
+import com.code4ro.legalconsultation.factory.RandomObjectFiller;
 import com.code4ro.legalconsultation.model.dto.DocumentConsolidatedDto;
 import com.code4ro.legalconsultation.model.dto.DocumentMetadataDto;
 import com.code4ro.legalconsultation.model.persistence.DocumentConsolidated;
 import com.code4ro.legalconsultation.model.persistence.User;
 import com.code4ro.legalconsultation.service.api.MailApi;
+import com.code4ro.legalconsultation.model.persistence.*;
+import com.code4ro.legalconsultation.service.api.CommentService;
+import com.code4ro.legalconsultation.service.export.DocumentExporterFactory;
+import com.code4ro.legalconsultation.service.export.PDFExporter;
 import com.code4ro.legalconsultation.service.impl.DocumentConsolidatedService;
 import com.code4ro.legalconsultation.service.impl.DocumentMetadataService;
 import com.code4ro.legalconsultation.service.impl.DocumentServiceImpl;
 import com.code4ro.legalconsultation.service.impl.UserService;
-import com.code4ro.legalconsultation.util.RandomObjectFiller;
+import com.code4ro.legalconsultation.service.impl.pdf.PDFServiceImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -17,6 +23,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import org.springframework.data.domain.Pageable;
 
 import java.util.Arrays;
@@ -42,6 +49,15 @@ public class DocumentServiceTest {
     private DocumentMetadataService documentMetadataService;
     @Mock
     private MailApi mailService;
+    private CommentService commentService;
+    @Mock
+    private DocumentConsolidatedMapper documentConsolidatedMapper;
+    @Mock
+    private PDFServiceImpl pdfService;
+    @Mock
+    private DocumentExporterFactory documentExporterFactory;
+    @Mock
+    private PDFExporter pdfExporter;
 
     @Captor
     private ArgumentCaptor<DocumentConsolidated> documentConsolidatedArgumentCaptor;
@@ -62,7 +78,13 @@ public class DocumentServiceTest {
     @Test
     public void getDocumentConsolidated() {
         final UUID uuid = UUID.randomUUID();
-        when(documentConsolidatedService.getByDocumentMetadataId(any(UUID.class))).thenReturn(new DocumentConsolidatedDto());
+        final DocumentConsolidated document = new DocumentConsolidated();
+        final DocumentNode documentNode = new DocumentNode();
+        documentNode.setId(UUID.randomUUID());
+        document.setDocumentNode(documentNode);
+
+        when(documentConsolidatedService.getByDocumentMetadataId(any(UUID.class))).thenReturn(document);
+        when(documentConsolidatedMapper.map(any())).thenReturn(new DocumentConsolidatedDto());
 
         documentService.fetchConsolidatedByMetadataId(uuid);
 
@@ -87,8 +109,10 @@ public class DocumentServiceTest {
 
     @Test
     public void assignUsers() {
+        final DocumentMetadata metadata = RandomObjectFiller.createAndFillWithBaseEntity(DocumentMetadata.class);
         final DocumentConsolidated documentConsolidated = new DocumentConsolidated();
         documentConsolidated.setId(UUID.randomUUID());
+        documentConsolidated.setDocumentMetadata(metadata);
 
         final User user1 = RandomObjectFiller.createAndFillWithBaseEntity(User.class);
         final User user2 = RandomObjectFiller.createAndFillWithBaseEntity(User.class);
@@ -98,15 +122,59 @@ public class DocumentServiceTest {
                 .map(User::getId)
                 .collect(Collectors.toSet());
 
-        when(documentConsolidatedService.getEntity(documentConsolidated.getId())).thenReturn(documentConsolidated);
+        when(documentConsolidatedService.getByDocumentMetadataId(documentConsolidated.getDocumentMetadata().getId()))
+                .thenReturn(documentConsolidated);
         when(userService.findByIds(assignedUsersIds)).thenReturn(assignedUsers);
 
-        documentService.assignUsers(documentConsolidated.getId(), assignedUsersIds);
+        documentService.assignUsers(documentConsolidated.getDocumentMetadata().getId(), assignedUsersIds);
 
         verify(mailService).sendDocumentAssignedEmail(eq(documentConsolidated.getDocumentMetadata()), eq(assignedUsers));
         verify(documentConsolidatedService).saveOne(documentConsolidatedArgumentCaptor.capture());
         final DocumentConsolidated capturedDocument = documentConsolidatedArgumentCaptor.getValue();
         assertThat(capturedDocument.getAssignedUsers()).hasSize(3);
         assertThat(capturedDocument.getAssignedUsers()).containsAll(assignedUsers);
+    }
+
+    @Test
+    public void addPdf() {
+        final UUID documentId = UUID.randomUUID();
+
+        when(documentConsolidatedService.getEntity(any(UUID.class))).thenAnswer((Answer<DocumentConsolidated>) invocationOnMock -> {
+            DocumentConsolidated documentConsolidated = new DocumentConsolidated();
+            documentConsolidated.setId(documentId);
+            return documentConsolidated;
+        });
+        final DocumentConsolidated documentConsolidated = documentConsolidatedService.getEntity(documentId);
+
+        assertThat(documentConsolidated.getId()).isEqualTo(documentId);
+
+        when(pdfService.createPdf(any(DocumentConsolidated.class), any(), any())).thenAnswer((Answer<PdfHandle>) invocationOnMock -> {
+            PdfHandle pdfHandle = new PdfHandle();
+            pdfHandle.setOwner(documentConsolidated);
+            return pdfHandle;
+        });
+
+        final PdfHandle pdfHandle = pdfService.createPdf(documentConsolidated, null, null);
+
+        assertThat(documentConsolidated).isEqualTo(pdfHandle.getOwner());
+    }
+
+    @Test
+    public void exportDocumentToPdf() {
+        final UUID id = UUID.randomUUID();
+        final byte[] pdfContent = new byte[]{1, 2, 3};
+
+        when(documentExporterFactory.getExporter(DocumentExportFormat.PDF)).thenReturn(pdfExporter);
+        when(pdfExporter.export(any())).thenReturn(pdfContent);
+
+        final byte[] result = documentService.export(id, DocumentExportFormat.PDF);
+
+        verify(documentExporterFactory).getExporter(DocumentExportFormat.PDF);
+        verify(documentConsolidatedService).getEntity(id);
+
+        assertThat(result)
+                .isNotEmpty()
+                .hasSameSizeAs(pdfContent)
+                .isEqualTo(pdfContent);
     }
 }

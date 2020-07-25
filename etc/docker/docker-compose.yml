@@ -1,24 +1,25 @@
 version: '3.7'
 
 services:
-  mysql:
-    container_name: mysql
-    image: mysql:5.7
+  database:
+    container_name: postgres
+    image: postgres:13
     restart: always
     environment:
-      MYSQL_DATABASE: 'legalconsultation'
-      MYSQL_ROOT_PASSWORD: 'root'
+      POSTGRES_USER: 'root'
+      POSTGRES_PASSWORD: 'root'
+      POSTGRES_DB: 'legalconsultation'
     ports:
-      - '3306:3306'
+      - '5432:5432'
     expose:
-      - '3306'
+      - '5432'
     volumes:
-      - mysql-vol:/var/lib/mysql
+      - postgres-vol:/var/lib/postgresql/data
   mailhog:
-      image: mailhog/mailhog
-      container_name: 'mailhog'
-      ports:
-        - "1025:1025"
-        - "8025:8025"
+    image: mailhog/mailhog
+    container_name: 'mailhog'
+    ports:
+      - "1025:1025"
+      - "8025:8025"
 volumes:
-  mysql-vol:
+  postgres-vol:

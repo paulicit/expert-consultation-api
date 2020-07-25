@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.code4ro.legalconsultation.util.StringComparator.containsIgnoreWhitespace;
+
 public abstract class DocumentNodeParser {
 
     @Lazy
@@ -24,7 +26,7 @@ public abstract class DocumentNodeParser {
     private String[] lines;
     private DocumentParsingMetadata metadata;
 
-    public DocumentNode parse(final String[] lines, DocumentParsingMetadata metadata) {
+    public DocumentNode parse(final String[] lines, final DocumentParsingMetadata metadata) {
         this.lines = lines;
         this.metadata = metadata;
 
@@ -37,7 +39,9 @@ public abstract class DocumentNodeParser {
         final String title = getTitle();
         final Matcher titleMatcher = pattern.matcher(title);
         titleMatcher.find();
+
         documentNode.setIdentifier(getIdentifier(titleMatcher));
+
         if (hasTitle()) {
             setTitle(documentNode, title, titleMatcher);
         } else {
@@ -82,7 +86,7 @@ public abstract class DocumentNodeParser {
     }
 
     private String getTitle() {
-        String currentLine = lines[metadata.getCurrentLineIndex()].trim();
+        String currentLine = getCurrentLine();
         if (isTokenWithoutTitle(currentLine)) {
             metadata.next();
             return currentLine;
@@ -99,16 +103,20 @@ public abstract class DocumentNodeParser {
         return result;
     }
 
+    private String getCurrentLine() {
+        return lines[metadata.getCurrentLineIndex()].trim() + " ";
+    }
+
     private void skipTitleLines(final String title) {
         String currentLine = getNextLine();
-        while (title.contains(currentLine)) {
+        while (containsIgnoreWhitespace(title, currentLine)) {
             currentLine = getNextLine();
         }
     }
 
     public String getNextLine() {
         metadata.next();
-        return lines[metadata.getCurrentLineIndex()].trim();
+        return getCurrentLine();
     }
 
     private boolean isTokenWithoutTitle(final String currentLine) {
@@ -117,7 +125,7 @@ public abstract class DocumentNodeParser {
     }
 
     private String getNodeContent(final StringBuilder contentBuilder) {
-        String currentLine = lines[metadata.getCurrentLineIndex()].trim();
+        String currentLine = getCurrentLine();
         while (startTokenMatcher.isRegularLine(currentLine)) {
             contentBuilder.append(currentLine);
 
@@ -134,12 +142,16 @@ public abstract class DocumentNodeParser {
 
     private List<DocumentNode> getChildrenNodes(DocumentNode documentNode) {
         final List<DocumentNode> children = new ArrayList<>();
+        Integer index = 0;
         String currentLine = lines[metadata.getCurrentLineIndex()];
         while (!isSameNodeType(currentLine) && isChildType(currentLine)) {
             final DocumentNodeParser parser = documentNodeParserFactory.getParser(currentLine);
             final DocumentNode child = parser.parse(lines, metadata);
             child.setParent(documentNode);
+            child.setIndex(index);
+            index++;
             children.add(child);
+
             currentLine = lines[metadata.getCurrentLineIndex()];
         }
 

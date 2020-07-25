@@ -2,6 +2,10 @@ package com.code4ro.legalconsultation.controller;
 
 import com.amazonaws.util.json.Jackson;
 import com.code4ro.legalconsultation.common.controller.AbstractControllerIntegrationTest;
+import com.code4ro.legalconsultation.factory.CommentFactory;
+import com.code4ro.legalconsultation.factory.DocumentNodeFactory;
+import com.code4ro.legalconsultation.factory.PdfFileFactory;
+import com.code4ro.legalconsultation.factory.RandomObjectFiller;
 import com.code4ro.legalconsultation.model.dto.DocumentViewDto;
 import com.code4ro.legalconsultation.model.persistence.DocumentConfiguration;
 import com.code4ro.legalconsultation.model.persistence.DocumentConsolidated;
@@ -10,14 +14,11 @@ import com.code4ro.legalconsultation.model.persistence.DocumentNode;
 import com.code4ro.legalconsultation.repository.DocumentConsolidatedRepository;
 import com.code4ro.legalconsultation.repository.DocumentMetadataRepository;
 import com.code4ro.legalconsultation.repository.DocumentNodeRepository;
-import com.code4ro.legalconsultation.util.CommentFactory;
-import com.code4ro.legalconsultation.util.DocumentNodeFactory;
-import com.code4ro.legalconsultation.util.PdfFileFactory;
-import com.code4ro.legalconsultation.util.RandomObjectFiller;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileSystemUtils;
@@ -32,8 +33,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 public class DocumentControllerIntegrationTest extends AbstractControllerIntegrationTest {
 
@@ -155,7 +155,7 @@ public class DocumentControllerIntegrationTest extends AbstractControllerIntegra
         assertThat(section1.getChildren()).hasSize(2);
         assertDocumentNodeContent(expectedSection1, section1);
 
-        final DocumentNode expectedSection2 = documentNodeFactory.createSection("2", null, null);
+        final DocumentNode expectedSection2 = documentNodeFactory.createSection("2", "", "");
         expectedSection2.setParent(chapter1);
         final DocumentNode section2 = chapter1.getChildren().get(1);
         assertThat(section1.getChildren()).hasSize(2);
@@ -304,6 +304,7 @@ public class DocumentControllerIntegrationTest extends AbstractControllerIntegra
                 .andExpect(jsonPath("$.content[1].id").value(documentsConsolidated.get(1).getDocumentMetadata().getId().toString()))
                 .andExpect(jsonPath("$.totalPages").value(2))
                 .andExpect(jsonPath("$.totalElements").value(3))
+                .andExpect(jsonPath("$.pageable.pageNumber").value(0))
                 .andExpect(status().isOk());
 
         mvc.perform(get("/api/documents/")
@@ -314,6 +315,7 @@ public class DocumentControllerIntegrationTest extends AbstractControllerIntegra
                 .andExpect(jsonPath("$.content[0].id").value(documentsConsolidated.get(2).getDocumentMetadata().getId().toString()))
                 .andExpect(jsonPath("$.totalPages").value(2))
                 .andExpect(jsonPath("$.totalElements").value(3))
+                .andExpect(jsonPath("$.pageable.pageNumber").value(1))
                 .andExpect(status().isOk());
 
         assertThat(documentMetadataRepository.count()).isEqualTo(3);
@@ -424,6 +426,20 @@ public class DocumentControllerIntegrationTest extends AbstractControllerIntegra
 
     @Test
     @WithMockUser
+    @Transactional
+    public void retrieveDocumentByInnerNodeId() throws Exception {
+        DocumentConsolidated consolidated = saveSingleConsolidated();
+        DocumentNode node = consolidated.getDocumentNode();
+
+        mvc.perform(get("/api/documents/" + node.getId() + "/node")
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(consolidated.getId().toString()))
+                .andExpect(status().isOk());
+
+    }
+
+    @Test
+    @WithMockUser
     public void testGetDocumentNotFound() throws Exception {
         UUID uuid = UUID.randomUUID();
 
@@ -447,6 +463,35 @@ public class DocumentControllerIntegrationTest extends AbstractControllerIntegra
 
         mvc.perform(delete("/api/documents/" + uuid.toString()))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser
+    @Transactional
+    public void addPdf() throws Exception {
+        DocumentConsolidated consolidated = saveSingleConsolidated();
+
+        final String state = "abcdef";
+        final MockMultipartFile randomFile = PdfFileFactory
+                .getAsMultipart(getClass().getClassLoader());
+
+        mvc.perform(multipart("/api/documents/" + consolidated.getId().toString() + "/pdf")
+                .file(randomFile)
+                .contentType(MediaType.APPLICATION_PDF)
+                .param("state", state))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser
+    @Transactional
+    public void testExportDocument() throws Exception {
+        final DocumentConsolidated document = saveSingleConsolidated();
+
+        mvc.perform(get("/api/documents/" + document.getId().toString() + "/export")
+                .param("type", "PDF"))
+                .andExpect(content().contentType(MediaType.APPLICATION_PDF))
+                .andExpect(status().isOk());
     }
 
     private DocumentConsolidated saveSingleConsolidated() {

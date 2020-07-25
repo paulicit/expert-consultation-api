@@ -3,16 +3,19 @@ package com.code4ro.legalconsultation.service;
 import com.code4ro.legalconsultation.common.exceptions.LegalValidationException;
 import com.code4ro.legalconsultation.converters.UserMapper;
 import com.code4ro.legalconsultation.converters.UserMapperImpl;
+import com.code4ro.legalconsultation.factory.RandomObjectFiller;
 import com.code4ro.legalconsultation.model.dto.UserDto;
+import com.code4ro.legalconsultation.model.persistence.Invitation;
 import com.code4ro.legalconsultation.model.persistence.User;
 import com.code4ro.legalconsultation.model.persistence.UserRole;
 import com.code4ro.legalconsultation.repository.UserRepository;
+import com.code4ro.legalconsultation.service.api.InvitationService;
 import com.code4ro.legalconsultation.service.impl.MailService;
 import com.code4ro.legalconsultation.service.impl.UserService;
-import com.code4ro.legalconsultation.util.RandomObjectFiller;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -32,18 +35,20 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class UserServiceTest {
 
+    private static final String USER_AS_STRING = "john,doe,john@email.com,42345,district,org";
     @Mock
     private UserRepository userRepository;
     @Mock
     private MailService mailService;
-
+    @Mock
+    private InvitationService invitationService;
     private UserMapper mapperService = new UserMapperImpl();
+
     private UserService userService;
-    private static final String USER_AS_STRING = "john,doe,john@email.com,42345,district,org";
 
     @Before
     public void before() {
-        this.userService = new UserService(userRepository, mailService, mapperService);
+        this.userService = new UserService(userRepository, mailService, mapperService, invitationService);
     }
 
     @Test
@@ -58,11 +63,16 @@ public class UserServiceTest {
 
     @Test
     public void saveUsersAndSendRegistrationMail() {
-        final List<UserDto> userDtos = Arrays.asList(
-                RandomObjectFiller.createAndFill(UserDto.class), RandomObjectFiller.createAndFill(UserDto.class));
+        final UserDto userDto = new UserDto();
+        userDto.setEmail("email");
+        final User user = new User("email", UserRole.OWNER);
 
-        userService.saveAndSendRegistrationMail(userDtos);
+        when(userRepository.saveAll(anyList())).thenReturn(Collections.singletonList(user));
+        when(invitationService.create(any(User.class))).thenReturn(RandomObjectFiller.createAndFill(Invitation.class));
 
+        userService.saveAndSendRegistrationMail(Collections.singletonList(userDto));
+
+        verify(invitationService).create(any(User.class));
         verify(mailService).sendRegisterMail(anyList());
         verify(userRepository).saveAll(anyList());
     }

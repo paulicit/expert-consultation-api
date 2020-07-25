@@ -55,7 +55,7 @@ public class UserController {
     }
 
     @ApiOperation(value = "Return a paginated list of users from the platform",
-            response = Page.class,
+            response = PageDto.class,
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @GetMapping
@@ -91,5 +91,14 @@ public class UserController {
             @ApiParam("List of Strings with all the user details separated by comma")
             @RequestBody final List<String> usersList) {
         return userService.extractFromCopyPaste(usersList);
+    }
+
+    @ApiOperation(value = "Search fields within the user for a given input term",
+            response = List.class,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/search")
+    public List<UserDto> searchByTerm(@ApiParam("String of the input searching term")
+                                      @RequestParam("searchTerm") final String searchTerm) {
+        return userMapper.map(userService.searchByTerm(searchTerm));
     }
 }

@@ -1,4 +1,4 @@
-package com.code4ro.legalconsultation.util;
+package com.code4ro.legalconsultation.factory;
 
 import org.apache.pdfbox.io.IOUtils;
 import org.springframework.mock.web.MockMultipartFile;

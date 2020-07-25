@@ -1,25 +1,17 @@
 package com.code4ro.legalconsultation.common.exceptions;
 
+import lombok.Builder;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
+import java.util.Map;
 
 @Getter
+@Builder
 public class LegalValidationException extends RuntimeException {
     private final String i18nKey;
     private final List<String> i8nArguments;
     private final HttpStatus httpStatus;
-
-    public LegalValidationException(final String i18nKey, final List<String> i8nArguments, final HttpStatus httpStatus) {
-        this.i18nKey = i18nKey;
-        this.i8nArguments = i8nArguments;
-        this.httpStatus = httpStatus;
-    }
-
-    public LegalValidationException(final String i18nKey, final HttpStatus httpStatus) {
-        this.i18nKey = i18nKey;
-        this.httpStatus = httpStatus;
-        this.i8nArguments = null;
-    }
+    private final Map<String, I18nError> i18nFieldErrors;
 }

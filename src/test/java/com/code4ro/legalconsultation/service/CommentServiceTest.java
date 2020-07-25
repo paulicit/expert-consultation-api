@@ -4,16 +4,13 @@ import com.code4ro.legalconsultation.common.exceptions.LegalValidationException;
 import com.code4ro.legalconsultation.config.security.CurrentUserService;
 import com.code4ro.legalconsultation.converters.CommentMapper;
 import com.code4ro.legalconsultation.model.dto.CommentDto;
-import com.code4ro.legalconsultation.model.persistence.ApplicationUser;
-import com.code4ro.legalconsultation.model.persistence.Comment;
-import com.code4ro.legalconsultation.model.persistence.DocumentNode;
-import com.code4ro.legalconsultation.model.persistence.UserRole;
+import com.code4ro.legalconsultation.model.persistence.*;
 import com.code4ro.legalconsultation.repository.CommentRepository;
 import com.code4ro.legalconsultation.service.api.DocumentNodeService;
 import com.code4ro.legalconsultation.service.impl.CommentServiceImpl;
-import com.code4ro.legalconsultation.util.CommentFactory;
-import com.code4ro.legalconsultation.util.DocumentNodeFactory;
-import com.code4ro.legalconsultation.util.RandomObjectFiller;
+import com.code4ro.legalconsultation.factory.CommentFactory;
+import com.code4ro.legalconsultation.factory.DocumentNodeFactory;
+import com.code4ro.legalconsultation.factory.RandomObjectFiller;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,18 +23,19 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CommentServiceTest {
 
+    public static final CommentStatus NEW_STATUS = CommentStatus.APPROVED;
     @Mock
     private CommentRepository commentRepository;
     @Mock
@@ -142,6 +140,35 @@ public class CommentServiceTest {
         //then
         assertEquals("response size should be 1", all.getContent().size(), 1L);
         assertEquals("text is different", all.getContent().get(0).getText(), text);
+    }
+
+    @Test
+    public  void updateCommentStatus(){
+        final UUID id = UUID.randomUUID();
+        final Comment comment = new Comment();
+        comment.setStatus(null);
+        when(commentRepository.findById(id)).thenReturn(Optional.of(comment));
+        commentService.setStatus(id, NEW_STATUS);
+        verify(commentRepository).save(commentArgumentCaptor.capture());
+        assertThat(commentArgumentCaptor.getValue().getStatus()).isEqualTo(NEW_STATUS);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public  void failUpdateCommentStatus(){
+        final UUID id = UUID.randomUUID();
+        final Comment comment = new Comment();
+        comment.setStatus(CommentStatus.REJECTED);
+        when(commentRepository.findById(id)).thenReturn(Optional.of(comment));
+        commentService.setStatus(id, NEW_STATUS);
+    }
+
+    @Test(expected = EntityNotFoundException.class)
+    public  void attemptToUpdateNonExistingComment(){
+        final UUID id = UUID.randomUUID();
+        final Comment comment = new Comment();
+        comment.setStatus(CommentStatus.REJECTED);
+        when(commentRepository.findById(id)).thenReturn(Optional.empty());
+        commentService.setStatus(id, NEW_STATUS);
     }
 
     @Test

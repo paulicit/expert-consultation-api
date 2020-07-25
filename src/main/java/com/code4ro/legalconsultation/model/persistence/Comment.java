@@ -13,7 +13,7 @@ import java.util.List;
 @Getter
 @Setter
 public class Comment extends BaseEntity {
-    @Column(name = "text")
+    @Column(name = "text", columnDefinition = "TEXT")
     private String text;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -32,7 +32,10 @@ public class Comment extends BaseEntity {
     private List<Comment> replies;
 
     @Column(name = "last_edit_date", nullable = false)
-    @Temporal(TemporalType.DATE)
+    @Temporal(TemporalType.TIMESTAMP)
     @LastModifiedDate
     private Date lastEditDateTime;
+
+    @Column(name = "status")
+    private CommentStatus status;
 }

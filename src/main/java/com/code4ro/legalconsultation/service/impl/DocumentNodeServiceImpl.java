@@ -1,5 +1,6 @@
 package com.code4ro.legalconsultation.service.impl;
 
+import com.code4ro.legalconsultation.model.dto.documentnode.DocumentNodeSimpleDto;
 import com.code4ro.legalconsultation.model.persistence.DocumentNode;
 import com.code4ro.legalconsultation.repository.DocumentNodeRepository;
 import com.code4ro.legalconsultation.service.api.DocumentNodeService;
@@ -34,6 +35,17 @@ public class DocumentNodeServiceImpl implements DocumentNodeService {
                 .orElseThrow(EntityNotFoundException::new);
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public DocumentNode findRootNodeForId(UUID id) {
+        DocumentNode root = findById(id);
+        while (root.getParent() != null) {
+            root = root.getParent();
+        }
+
+        return root;
+    }
+
     @Transactional
     @Override
     public DocumentNode parse(final String pdfContent) {
@@ -50,14 +62,26 @@ public class DocumentNodeServiceImpl implements DocumentNodeService {
     }
 
     @Override
-    public DocumentNode update(DocumentNode documentNode) {
+    public DocumentNode update(DocumentNodeSimpleDto documentNode) {
         log.info("Update DocumentNode: {}", documentNode);
-        return documentNodeRepository.save(documentNode);
+        final DocumentNode exitingDocumentNode = documentNodeRepository.findById(documentNode.getId())
+                .orElseThrow(EntityNotFoundException::new);
+        exitingDocumentNode.setTitle(documentNode.getTitle());
+        exitingDocumentNode.setIdentifier(documentNode.getIdentifier());
+        exitingDocumentNode.setContent(documentNode.getContent());
+        return documentNodeRepository.save(exitingDocumentNode);
     }
 
+    @Transactional
     @Override
     public void deleteById(UUID id) {
-        log.info("Delete DocumentNode by id: {}", id);
+        DocumentNode documentNode = documentNodeRepository.getOne(id);
+        DocumentNode parentNode = documentNode.getParent();
+        if (parentNode != null) {
+            parentNode.getChildren().remove(documentNode);
+            documentNodeRepository.save(parentNode);
+        }
+
         documentNodeRepository.deleteById(id);
     }
 }

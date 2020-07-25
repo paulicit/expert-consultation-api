@@ -13,4 +13,9 @@ public class I18nError {
         this.i18nErrorKey = i18nErrorKey;
         this.i18nErrorArguments = i18nErrorArguments;
     }
+
+    public I18nError(String i18nErrorKey) {
+        this.i18nErrorKey = i18nErrorKey;
+        this.i18nErrorArguments = null;
+    }
 }

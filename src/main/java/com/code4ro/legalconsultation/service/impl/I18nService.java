@@ -1,19 +1,18 @@
 package com.code4ro.legalconsultation.service.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Locale;
 
 @Service
+@Slf4j
 public class I18nService {
-    private static final Logger log = LoggerFactory.getLogger(I18nService.class);
+
     private final MessageSource messageSource;
 
     @Autowired

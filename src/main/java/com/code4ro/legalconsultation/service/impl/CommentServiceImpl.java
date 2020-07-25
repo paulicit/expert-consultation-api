@@ -3,17 +3,13 @@ package com.code4ro.legalconsultation.service.impl;
 import com.code4ro.legalconsultation.common.exceptions.LegalValidationException;
 import com.code4ro.legalconsultation.config.security.CurrentUserService;
 import com.code4ro.legalconsultation.converters.CommentMapper;
+import com.code4ro.legalconsultation.model.dto.CommentDetailDto;
 import com.code4ro.legalconsultation.model.dto.CommentDto;
-import com.code4ro.legalconsultation.model.dto.CommentIdentificationDto;
-import com.code4ro.legalconsultation.model.persistence.ApplicationUser;
-import com.code4ro.legalconsultation.model.persistence.Comment;
-import com.code4ro.legalconsultation.model.persistence.DocumentNode;
-import com.code4ro.legalconsultation.model.persistence.UserRole;
+import com.code4ro.legalconsultation.model.persistence.*;
 import com.code4ro.legalconsultation.repository.CommentRepository;
 import com.code4ro.legalconsultation.service.api.CommentService;
 import com.code4ro.legalconsultation.service.api.DocumentNodeService;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -22,10 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityNotFoundException;
 import java.math.BigInteger;
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class CommentServiceImpl implements CommentService {
@@ -46,19 +40,19 @@ public class CommentServiceImpl implements CommentService {
 
     @Transactional
     @Override
-    public CommentDto update(UUID nodeId, final UUID id, final CommentDto commentDto) {
+    public CommentDetailDto update(UUID nodeId, final UUID id, final CommentDto commentDto) {
         Comment comment = commentRepository.findById(id).orElseThrow(EntityNotFoundException::new);
         checkIfAuthorized(comment);
 
         comment.setText(commentDto.getText());
         comment = commentRepository.save(comment);
 
-        return mapperService.map(comment);
+        return mapperService.mapToCommentDetailDto(comment);
     }
 
     @Transactional
     @Override
-    public CommentDto create(UUID nodeId, final CommentDto commentDto) {
+    public CommentDetailDto create(UUID nodeId, final CommentDto commentDto) {
         final DocumentNode node = documentNodeService.findById(nodeId);
 
         final ApplicationUser currentUser = currentUserService.getCurrentUser();
@@ -69,12 +63,12 @@ public class CommentServiceImpl implements CommentService {
         comment.setLastEditDateTime(new Date());
         comment = commentRepository.save(comment);
 
-        return mapperService.map(comment);
+        return mapperService.mapToCommentDetailDto(comment);
     }
 
     @Transactional
     @Override
-    public CommentDto createReply(UUID parentId, CommentDto commentDto) {
+    public CommentDetailDto createReply(UUID parentId, CommentDto commentDto) {
         Comment parent = commentRepository.findById(parentId).orElseThrow(EntityNotFoundException::new);
         ApplicationUser currentUser = currentUserService.getCurrentUser();
 
@@ -85,7 +79,7 @@ public class CommentServiceImpl implements CommentService {
 
         reply = commentRepository.save(reply);
 
-        return mapperService.map(reply);
+        return mapperService.mapToCommentDetailDto(reply);
     }
 
     @Transactional
@@ -115,11 +109,35 @@ public class CommentServiceImpl implements CommentService {
         return commentRepository.countByDocumentNodeId(nodeId);
     }
 
+    @Transactional
+    @Override
+    public CommentDto setStatus(UUID commentId, CommentStatus status) {
+        final Comment comment = commentRepository.findById(commentId).orElseThrow(EntityNotFoundException::new);
+        if (comment.getStatus() != null) {
+            throw LegalValidationException.builder()
+                    .i18nKey("comment.Status.already.set")
+                    .httpStatus(HttpStatus.CONFLICT)
+                    .build();
+        }
+        comment.setStatus(status);
+        commentRepository.save(comment);
+        return mapperService.map(comment);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Comment findById(UUID id) {
+        return this.commentRepository.getOne(id);
+    }
+
     private void checkIfAuthorized(Comment comment) {
         final ApplicationUser owner = comment.getOwner();
         final ApplicationUser currentUser = currentUserService.getCurrentUser();
         if (currentUser.getUser().getRole() != UserRole.ADMIN && !Objects.equals(currentUser.getId(), owner.getId())) {
-            throw new LegalValidationException("comment.Unauthorized.user", HttpStatus.BAD_REQUEST);
+            throw LegalValidationException.builder()
+                    .i18nKey("comment.Unauthorized.user")
+                    .httpStatus(HttpStatus.BAD_REQUEST)
+                    .build();
         }
     }
 }

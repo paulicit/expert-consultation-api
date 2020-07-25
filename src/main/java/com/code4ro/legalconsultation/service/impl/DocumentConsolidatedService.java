@@ -1,18 +1,15 @@
 package com.code4ro.legalconsultation.service.impl;
 
-import com.code4ro.legalconsultation.converters.DocumentConsolidatedMapper;
-import com.code4ro.legalconsultation.model.dto.DocumentConsolidatedDto;
 import com.code4ro.legalconsultation.model.persistence.DocumentConsolidated;
 import com.code4ro.legalconsultation.model.persistence.DocumentMetadata;
 import com.code4ro.legalconsultation.model.persistence.DocumentNode;
 import com.code4ro.legalconsultation.repository.DocumentConsolidatedRepository;
-import com.code4ro.legalconsultation.service.api.CommentService;
+import com.code4ro.legalconsultation.service.api.DocumentNodeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
-import java.math.BigInteger;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,16 +17,13 @@ import java.util.UUID;
 public class DocumentConsolidatedService {
 
     private final DocumentConsolidatedRepository documentConsolidatedRepository;
-    private final CommentService commentService;
-    private final DocumentConsolidatedMapper mapperService;
+    private final DocumentNodeService documentNodeService;
 
     @Autowired
     public DocumentConsolidatedService(final DocumentConsolidatedRepository repository,
-                                       final DocumentConsolidatedMapper mapperService,
-                                       final CommentService commentService) {
+                                       final DocumentNodeService documentNodeService) {
         this.documentConsolidatedRepository = repository;
-        this.mapperService = mapperService;
-        this.commentService = commentService;
+        this.documentNodeService = documentNodeService;
     }
 
     @Transactional(readOnly = true)
@@ -38,13 +32,17 @@ public class DocumentConsolidatedService {
     }
 
     @Transactional(readOnly = true)
-    public DocumentConsolidatedDto getByDocumentMetadataId(final UUID id) {
-        DocumentConsolidated documentConsolidated = documentConsolidatedRepository.
+    public DocumentConsolidated getByDocumentMetadataId(final UUID id) {
+        return documentConsolidatedRepository.
                 findByDocumentMetadataId(id).orElseThrow(EntityNotFoundException::new);
-        UUID documentNodeId = documentConsolidated.getDocumentNode().getId();
-        BigInteger noOfcComments = commentService.count(documentNodeId);
+    }
 
-        return mapperService.map(documentConsolidated, noOfcComments);
+    @Transactional(readOnly = true)
+    public DocumentConsolidated getByMemberDocumentNodeId(final UUID id) {
+        DocumentNode rootNodeForDocument = documentNodeService.findRootNodeForId(id);
+        return documentConsolidatedRepository
+                .findByDocumentNodeId(rootNodeForDocument.getId())
+                .orElseThrow(EntityNotFoundException::new);
     }
 
     @Transactional(readOnly = true)

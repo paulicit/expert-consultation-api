@@ -23,6 +23,7 @@ app:
   email:
     documenturl: http://localhost:4200/api/documents/
     signupurl: http://localhost:4200/authentication/sign-up
+    sender: noreplytest@legalconsultation.ro
 storage:
   filesystem:
     directory: 'test_uploads'

@@ -3,6 +3,7 @@ package com.code4ro.legalconsultation.controller;
 import com.code4ro.legalconsultation.converters.DocumentNodeMapper;
 import com.code4ro.legalconsultation.model.dto.documentnode.DocumentNodeCreateDto;
 import com.code4ro.legalconsultation.model.dto.documentnode.DocumentNodeDto;
+import com.code4ro.legalconsultation.model.dto.documentnode.DocumentNodeSimpleDto;
 import com.code4ro.legalconsultation.model.persistence.DocumentNode;
 import com.code4ro.legalconsultation.service.api.DocumentNodeService;
 import io.swagger.annotations.ApiOperation;
@@ -58,16 +59,17 @@ public class DocumentNodeController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<UUID> modifyDocument(@ApiParam(value = "Id of the document node being modified") @PathVariable("id") UUID id,
-                                               @Valid @RequestBody DocumentNodeDto documentNodeDto) {
-        DocumentNode inputDocumentNode = mapper.map(documentNodeDto);
-        DocumentNode documentNode = documentNodeService.update(inputDocumentNode);
-        return ResponseEntity.ok(documentNode.getId());
+    public ResponseEntity<DocumentNodeSimpleDto> modifyDocument(@ApiParam(value = "Id of the document node being modified") @PathVariable("id") UUID id,
+                                                                @Valid @RequestBody DocumentNodeSimpleDto documentNodeDto) {
+        DocumentNode documentNode = documentNodeService.update(documentNodeDto);
+        return ResponseEntity.ok(mapper.mapToSimpleDto(documentNode));
     }
 
     @ApiOperation(value = "Delete document node based on id")
     @DeleteMapping("/{id}")
-    public void deleteDocument(@ApiParam("Id of the document node being deleted") @PathVariable UUID id) {
+    public ResponseEntity<UUID> deleteDocument(@ApiParam("Id of the document node being deleted") @PathVariable UUID id) {
+        DocumentNode rootNode = documentNodeService.findRootNodeForId(id);
         documentNodeService.deleteById(id);
+        return ResponseEntity.ok(rootNode.getId());
     }
 }

@@ -48,7 +48,7 @@ Maven
 
 ### Database technology & provider
 
-TBD
+mysql
 
 ## Repos and projects
 

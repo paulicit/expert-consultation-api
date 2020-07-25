@@ -5,6 +5,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class CommentIdentificationDto extends BaseEntityDto {
-    private String text;
+public class CommentDetailDto extends CommentDto {
+    private String user;
 }

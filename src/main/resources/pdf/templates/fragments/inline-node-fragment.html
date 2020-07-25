@@ -1,0 +1,9 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="frag (node)">
+    <span th:if="${node.identifier} != null" th:text="'(' + ${node.identifier} + ')'"></span>
+    <span th:text="${node.content}"></span>
+</div>
+</body>
+</html>

@@ -44,8 +44,11 @@ public class GlobalExceptionHandlerTest {
 
     @Test
     public void legalExceptionHandled() throws Exception {
-        final LegalValidationException legalValidationException =
-                new LegalValidationException("i18nKey", Collections.singletonList("i18nArg"), HttpStatus.BAD_REQUEST);
+        final LegalValidationException legalValidationException = LegalValidationException.builder()
+                .i18nKey("i18nKey")
+                .i8nArguments(Collections.singletonList("i18nArg"))
+                .httpStatus(HttpStatus.BAD_REQUEST)
+                .build();
         when(testController.testException()).thenThrow(legalValidationException);
 
         mockMvc.perform(get("/testException"))

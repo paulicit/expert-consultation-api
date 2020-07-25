@@ -2,15 +2,15 @@ spring:
   profiles:
     active: dev
   datasource:
-    url: jdbc:mysql://${MYSQL_DB_URL:localhost}:3306/legalconsultation?serverTimezone=Europe/Bucharest&characterEncoding=UTF-8
+    url: jdbc:postgresql://${MYSQL_DB_URL:localhost}:5432/legalconsultation?serverTimezone=Europe/Bucharest&characterEncoding=UTF-8
     username: root
     password: root
   jpa:
     show-sql: true
     hibernate.ddl-auto: update
     generate-ddl: true
-    properties.hibernate.dialect.storage_engine: innodb
-    properties.hibernate.dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+    properties.hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
+    properties.hibernate.jdbc.lob.non_contextual_creation: true
   multipart:
     maxFileSize: 20MB
     maxRequestSize: 30MB
@@ -43,7 +43,7 @@ app:
   email:
     documenturl: http://localhost:4200/api/documents/
     signupurl: http://localhost:4200/authentication/sign-up
-
+    sender: noreply@legalconsultation.ro # temporary value. change this to a real email that is validated in SES : https://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses-procedure.html
 storage:
   aws:
     region: us-east-1
@@ -54,4 +54,15 @@ storage:
     s3:
       documentBucket: documents
   filesystem:
-    directory: ~
+    directory: legal_consult_uploads
+management:
+  health:
+    mail:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always

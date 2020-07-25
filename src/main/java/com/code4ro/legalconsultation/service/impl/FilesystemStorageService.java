@@ -25,12 +25,8 @@ public class FilesystemStorageService implements StorageApi {
 
     @PostConstruct
     private void prepareStoreDir() {
-        if (StringUtils.isNotBlank(customStoreDirPath)) {
-            storeDir = new File(customStoreDirPath);
-        } else {
-            final String home = System.getProperty("user.home");
-            storeDir = new File(home, "legal_consult_uploads");
-        }
+        final String home = System.getProperty("user.home");
+        storeDir = new File(home, customStoreDirPath);
         if (!storeDir.exists()) {
             storeDir.mkdir();
         }

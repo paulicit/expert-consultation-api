@@ -1,14 +1,13 @@
 package com.code4ro.legalconsultation.service.api;
 
-import com.code4ro.legalconsultation.model.dto.DocumentConsolidatedDto;
-import com.code4ro.legalconsultation.model.dto.DocumentMetadataDto;
-import com.code4ro.legalconsultation.model.dto.DocumentViewDto;
-import com.code4ro.legalconsultation.model.dto.UserDto;
+import com.code4ro.legalconsultation.model.dto.*;
 import com.code4ro.legalconsultation.model.persistence.DocumentConsolidated;
+import com.code4ro.legalconsultation.model.persistence.DocumentExportFormat;
 import com.code4ro.legalconsultation.model.persistence.DocumentMetadata;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Set;
@@ -26,6 +25,13 @@ public interface DocumentService {
     //that contains the metadata and the breakdown into units
     DocumentConsolidatedDto fetchConsolidatedByMetadataId(final UUID id);
 
+    /**
+     * @param id of one of the document nodes contained in the requested document
+     * @return the entire consolidated form of the document,
+     * that contains the metadata and the breakdown into units
+     */
+    DocumentConsolidatedDto fetchConsolidatedByDocumentNodeId(final UUID id);
+
     //create a single document, including metadata and breakdown
     DocumentConsolidated create(final DocumentViewDto document);
 
@@ -39,4 +45,8 @@ public interface DocumentService {
     void assignUsers(final UUID id, final Set<UUID> userIds);
 
     List<UserDto> getAssignedUsers(final UUID id);
+
+    PdfHandleDto addPdf(final UUID id, final String state, final MultipartFile file);
+
+    byte[] export(final UUID id, final DocumentExportFormat type);
 }

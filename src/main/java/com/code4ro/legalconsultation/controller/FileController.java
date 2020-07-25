@@ -5,7 +5,6 @@ import com.code4ro.legalconsultation.service.api.StorageApi;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +24,7 @@ public class FileController {
         return ResponseEntity.ok(Jackson.toJsonString(storageApi.storeFile(file)));
     }
 
-    @ApiOperation(value = "Add a new file that will be attached one document")
+    @ApiOperation(value = "Delete a file that is attached to a document")
     @DeleteMapping("")
     public void deleteFile(
             @ApiParam(value = "The filePath that will be deleted") @RequestParam("filePath") String filePath) {

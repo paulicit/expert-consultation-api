@@ -21,7 +21,7 @@ public class AuthExceptionHandler extends GlobalExceptionHandler {
     protected ResponseEntity<Object> handleBadCredentials(final BadCredentialsException ex) {
         final ExceptionResponse exceptionResponse = new ExceptionResponse();
         exceptionResponse.setI18nErrors(Collections.singletonList(
-                new I18nError("login.Bad.credentials", null)));
+                new I18nError("login.Bad.credentials")));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.UNAUTHORIZED);
     }
 }

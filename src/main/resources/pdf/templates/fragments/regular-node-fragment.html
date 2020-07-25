@@ -1,0 +1,14 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="frag (node, nodeTypeTitle)">
+    <div class="mt-20">
+        <b th:text="${nodeTypeTitle} + ' '"></b>
+        <b th:if="${node.identifier} != null" th:text="${node.identifier}"></b>
+        <b th:if="${node.title} != null">: </b>
+        <b th:text="${node.title}"></b>
+    </div>
+    <div th:text="${node.content}"></div>
+</div>
+</body>
+</html>

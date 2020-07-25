@@ -1,0 +1,27 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <style type="text/css">
+        body {
+            font-family: Open Sans, sans-serif;
+        }
+
+        .mb-20 {
+            margin-bottom: 20px;
+        }
+
+        .mt-20 {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body th:object="${rootNode}">
+<b th:text="*{title}"></b>
+<p class="mb-20" th:text="*{content}"></p>
+<div th:if="*{children.size()} > 0">
+    <div class="mb-20" th:each="child: *{children}">
+        <div th:include="fragments/node-fragment ::frag (${child})"></div>
+    </div>
+</div>
+</body>
+</html>

@@ -10,8 +10,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.i18n.LocaleContextHolder;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Locale;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;

@@ -1,8 +1,6 @@
 package com.code4ro.legalconsultation.service;
 
 import com.code4ro.legalconsultation.converters.DocumentConsolidatedMapper;
-import com.code4ro.legalconsultation.converters.DocumentConsolidatedMapperImpl;
-import com.code4ro.legalconsultation.model.dto.DocumentConsolidatedDto;
 import com.code4ro.legalconsultation.model.persistence.DocumentConfiguration;
 import com.code4ro.legalconsultation.model.persistence.DocumentConsolidated;
 import com.code4ro.legalconsultation.model.persistence.DocumentMetadata;
@@ -10,15 +8,14 @@ import com.code4ro.legalconsultation.model.persistence.DocumentNode;
 import com.code4ro.legalconsultation.repository.DocumentConsolidatedRepository;
 import com.code4ro.legalconsultation.service.api.CommentService;
 import com.code4ro.legalconsultation.service.impl.DocumentConsolidatedService;
-import com.code4ro.legalconsultation.util.DocumentNodeFactory;
-import com.code4ro.legalconsultation.util.RandomObjectFiller;
+import com.code4ro.legalconsultation.factory.DocumentNodeFactory;
+import com.code4ro.legalconsultation.factory.RandomObjectFiller;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.math.BigInteger;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -68,24 +65,17 @@ public class DocumentConsolidatedServiceTest {
 
 
         when(documentConsolidatedRepository.findByDocumentMetadataId(any(UUID.class))).thenReturn(Optional.of(documentConsolidated));
-        when(commentService.count(documentNodeUuid)).thenReturn(BigInteger.ONE);
-        DocumentConsolidatedMapperImpl mapper = new DocumentConsolidatedMapperImpl();
-        when(mapperService.map(any(DocumentConsolidated.class), eq(BigInteger.ONE))).thenAnswer(i -> {
-            DocumentConsolidated argument = i.getArgument(0);
-            return mapper.map(argument, BigInteger.ONE);
-        });
 
         //when
-        DocumentConsolidatedDto documentConsolidatedDto = documentConsolidatedService.getByDocumentMetadataId(uuid);
+        DocumentConsolidated document = documentConsolidatedService.getByDocumentMetadataId(uuid);
 
         //then
-        assertEquals("DocumentNode id is different", documentNodeUuid, documentConsolidatedDto.getDocumentNode().getId());
-        assertEquals("DocumentNode title is different", documentNodeTitle, documentConsolidatedDto.getDocumentNode().getTitle());
-        assertEquals("No. of comments is different", BigInteger.ONE, documentConsolidatedDto.getDocumentNode().getNumberOfComments());
+        assertEquals("DocumentNode id is different", documentNodeUuid, document.getDocumentNode().getId());
+        assertEquals("DocumentNode title is different", documentNodeTitle, document.getDocumentNode().getTitle());
 
-        assertEquals("DocumentMetadata title is different", documentMetadataTitle, documentConsolidatedDto.getDocumentMetadata().getDocumentTitle());
+        assertEquals("DocumentMetadata title is different", documentMetadataTitle, document.getDocumentMetadata().getDocumentTitle());
 
-        assertEquals("OpenForCommenting should be true", true, documentConsolidatedDto.getDocumentConfiguration().getOpenForCommenting());
+        assertEquals("OpenForCommenting should be true", true, document.getDocumentConfiguration().getOpenForCommenting());
     }
 
     @Test
